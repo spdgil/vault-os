@@ -1,0 +1,9 @@
+{
+  "id": "vault-os",
+  "name": "Vault OS",
+  "version": "0.1.0",
+  "minAppVersion": "1.5.0",
+  "description": "Operating layer for the vault. Interactive views across five time horizons: day, week, quarter, year, and all.",
+  "author": "spdgill",
+  "isDesktopOnly": false
+}

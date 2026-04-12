@@ -1,0 +1,23 @@
+{
+  "name": "vault-os",
+  "version": "0.1.0",
+  "description": "Obsidian plugin — operating layer for the vault with temporal views",
+  "main": "main.js",
+  "scripts": {
+    "dev": "node esbuild.config.mjs",
+    "build": "tsc -noEmit -skipLibCheck && node esbuild.config.mjs production"
+  },
+  "keywords": ["obsidian", "vault", "dashboard", "svelte"],
+  "license": "MIT",
+  "devDependencies": {
+    "@tsconfig/svelte": "^5.0.0",
+    "@types/node": "^22.0.0",
+    "builtin-modules": "^4.0.0",
+    "esbuild": "^0.25.0",
+    "esbuild-svelte": "^0.8.0",
+    "obsidian": "^1.7.0",
+    "svelte": "^4.2.0",
+    "svelte-preprocess": "^6.0.0",
+    "typescript": "^5.8.0"
+  }
+}
