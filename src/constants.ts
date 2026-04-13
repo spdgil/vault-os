@@ -1,6 +1,9 @@
 export const VIEW_TYPE_VAULT_OS = "vault-os-view";
 export const ICON_VAULT_OS = "layout-dashboard";
 
+export const VIEW_TYPE_DAY = "vault-os-day";
+export const ICON_DAY = "calendar-days";
+
 /** Path patterns for vault data sources */
 export const VAULT_PATHS = {
   dailyNotes: "_inbox/notes/daily",
