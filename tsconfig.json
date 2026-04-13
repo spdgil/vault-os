@@ -2,6 +2,7 @@
   "extends": "@tsconfig/svelte/tsconfig.json",
   "compilerOptions": {
     "baseUrl": ".",
+    "sourceMap": false,
     "inlineSourceMap": true,
     "inlineSources": true,
     "module": "ESNext",
@@ -15,5 +16,6 @@
     "lib": ["DOM", "ES2018", "ES2021.String"],
     "types": ["svelte"]
   },
-  "include": ["src/**/*.ts", "src/**/*.svelte"]
+  "include": ["src/**/*.ts", "src/**/*.svelte"],
+  "exclude": ["src/**/*.test.ts", "vitest.config.ts"]
 }

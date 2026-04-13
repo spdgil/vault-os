@@ -1,9 +1,22 @@
 import { Plugin, WorkspaceLeaf } from "obsidian";
 import { VIEW_TYPE_VAULT_OS, ICON_VAULT_OS } from "./constants";
 import { VaultOSView } from "./vault-os-view";
+import { VaultParser } from "./vault-parser";
+import { FrontmatterWriter } from "./frontmatter-writer";
+import { NoteCreator } from "./note-creator";
 
 export default class VaultOSPlugin extends Plugin {
+  vaultParser!: VaultParser;
+  frontmatterWriter!: FrontmatterWriter;
+  noteCreator!: NoteCreator;
+
   async onload(): Promise<void> {
+    this.vaultParser = new VaultParser(this.app);
+    this.vaultParser.registerEvents();
+
+    this.frontmatterWriter = new FrontmatterWriter(this.app);
+    this.noteCreator = new NoteCreator(this.app);
+
     this.registerView(VIEW_TYPE_VAULT_OS, (leaf: WorkspaceLeaf) => {
       return new VaultOSView(leaf);
     });
@@ -20,6 +33,7 @@ export default class VaultOSPlugin extends Plugin {
   }
 
   onunload(): void {
+    this.vaultParser.destroy();
     this.app.workspace.detachLeavesOfType(VIEW_TYPE_VAULT_OS);
   }
 
