@@ -82,7 +82,7 @@ recurring: false
     expect(fields.status).toBe("open");
     expect(fields.priority).toBe("normal");
     expect(fields.tags).toEqual([]);
-    expect(fields.created).toEqual([]); // Templater stripped, empty value parsed as empty array
+    expect(fields.created).toBeNull(); // Templater stripped, bare empty value
     expect(fields.recurring).toBe(false);
     expect(body.trim()).toBe("");
   });
@@ -138,7 +138,7 @@ subject:
     const { fields } = parseTemplate(raw);
     expect(fields.type).toBe("correspondence");
     expect(fields.form).toBeNull(); // Templater stripped
-    expect(fields.to).toEqual([]); // empty value parsed as empty array
-    expect(fields.subject).toEqual([]);
+    expect(fields.to).toBeNull(); // bare empty value
+    expect(fields.subject).toBeNull();
   });
 });

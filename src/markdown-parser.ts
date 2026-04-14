@@ -46,9 +46,9 @@ export function parseYamlFrontmatter(yaml: string): Record<string, unknown> {
       continue;
     }
 
-    // Flush pending array
+    // Flush pending array (empty means the value was bare "key:", not a list)
     if (currentKey && currentArray !== null) {
-      result[currentKey] = currentArray;
+      result[currentKey] = currentArray.length > 0 ? currentArray : null;
       currentKey = null;
       currentArray = null;
     }
@@ -84,7 +84,7 @@ export function parseYamlFrontmatter(yaml: string): Record<string, unknown> {
 
   // Flush trailing array
   if (currentKey && currentArray !== null) {
-    result[currentKey] = currentArray;
+    result[currentKey] = currentArray.length > 0 ? currentArray : null;
   }
 
   return result;

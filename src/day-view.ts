@@ -1,6 +1,6 @@
 import { ItemView } from "obsidian";
 import type { WorkspaceLeaf } from "obsidian";
-import { VIEW_TYPE_DAY } from "./constants";
+import { VIEW_TYPE_DAY, ICON_DAY, VAULT_PATHS } from "./constants";
 import DayView from "./components/DayView.svelte";
 import type { VaultParser } from "./vault-parser";
 import type { FrontmatterWriter } from "./frontmatter-writer";
@@ -26,7 +26,7 @@ export class DayViewLeaf extends ItemView {
   }
 
   getIcon(): string {
-    return "calendar-days";
+    return ICON_DAY;
   }
 
   async onOpen(): Promise<void> {
@@ -42,14 +42,29 @@ export class DayViewLeaf extends ItemView {
       },
     });
 
+    const refreshIfRelevant = (path: string) => {
+      if (this.isRelevantPath(path)) this.scheduleRefresh();
+    };
+
     this.registerEvent(
-      this.app.vault.on("modify", () => this.scheduleRefresh()),
+      this.app.vault.on("modify", (file) => refreshIfRelevant(file.path)),
     );
     this.registerEvent(
-      this.app.vault.on("create", () => this.scheduleRefresh()),
+      this.app.vault.on("create", (file) => refreshIfRelevant(file.path)),
     );
     this.registerEvent(
-      this.app.vault.on("delete", () => this.scheduleRefresh()),
+      this.app.vault.on("delete", (file) => refreshIfRelevant(file.path)),
+    );
+  }
+
+  private isRelevantPath(path: string): boolean {
+    return (
+      path.startsWith(VAULT_PATHS.tasks + "/") ||
+      path.startsWith(VAULT_PATHS.dailyNotes + "/") ||
+      path.startsWith(VAULT_PATHS.insights + "/") ||
+      path.startsWith("areas/") ||
+      path.startsWith("projects/") ||
+      path === VAULT_PATHS.lifeSystem
     );
   }
 

@@ -91,9 +91,9 @@ export function parseTemplate(raw: string): {
       continue;
     }
 
-    // Flush pending array
+    // Flush pending array (empty means bare "key:", not a list)
     if (currentKey && currentArray !== null) {
-      fields[currentKey] = currentArray;
+      fields[currentKey] = currentArray.length > 0 ? currentArray : null;
       currentKey = null;
       currentArray = null;
     }
@@ -136,7 +136,7 @@ export function parseTemplate(raw: string): {
 
   // Flush trailing array
   if (currentKey && currentArray !== null) {
-    fields[currentKey] = currentArray;
+    fields[currentKey] = currentArray.length > 0 ? currentArray : null;
   }
 
   return { fields, body };

@@ -116,7 +116,8 @@
       if (
         status === "done" ||
         status === "completed" ||
-        status === "cancelled"
+        status === "cancelled" ||
+        status === "deferred"
       )
         continue;
 
@@ -160,23 +161,36 @@
       return;
     }
 
+    // Extract only unchecked checkbox items (- [ ] text) from the daily note.
+    // Bare bullets without checkboxes are structured planning content, not captures.
     const items: string[] = [];
     for (const line of note.body.split("\n")) {
-      const match = line.match(/^[-*]\s+(?:\[( |x)\]\s+)?(.+)/);
-      if (match && match[1] !== "x") {
-        items.push(match[2].trim());
+      const match = line.match(/^[-*]\s+\[ \]\s+(.+)/);
+      if (match) {
+        items.push(match[1].trim());
       }
     }
     captures = items;
   }
 
   async function loadActiveWork(domains: Domain[]): Promise<void> {
-    // Build slug → domain name mapping (domain names + individual areas)
+    // Build slug → domain name mapping
+    // Maps domain name slugs, full area slugs, and short area names
+    // (text before : or parenthesis) to handle real frontmatter values
+    // like "kingdom", "secondmuse", "agrifutures"
     const areaToDomain = new Map<string, string>();
     for (const domain of domains) {
       areaToDomain.set(slugify(domain.name), domain.name);
       for (const area of domain.areas) {
         areaToDomain.set(slugify(area), domain.name);
+        // Extract short name before colon or parenthesis
+        const shortMatch = area.match(/^([^(:,]+)/);
+        if (shortMatch) {
+          const shortSlug = slugify(shortMatch[1].trim());
+          if (shortSlug) {
+            areaToDomain.set(shortSlug, domain.name);
+          }
+        }
       }
     }
 
@@ -190,8 +204,9 @@
       (n) => n.frontmatter.status === "active",
     );
     const activeWriting = writing.filter((n) => {
-      const s = n.frontmatter.status;
-      return s && s !== "done" && s !== "published" && s !== "abandoned";
+      const s = String(n.frontmatter.status || "");
+      // Only show writing actively being drafted, not outlines or sketches
+      return s.startsWith("draft") || s === "in-progress" || s === "review";
     });
     const inProgressTasks = tasks.filter(
       (n) => n.frontmatter.status === "in-progress",
@@ -226,15 +241,34 @@
     // Try area field
     const area = String(note.frontmatter.area || "");
     if (area) {
-      const domain = areaToDomain.get(slugify(area));
-      if (domain) return domain;
+      const areaSlug = slugify(area);
+
+      // Exact match
+      const exact = areaToDomain.get(areaSlug);
+      if (exact) return exact;
+
+      // Prefix match: "kingdom" matches "kingdom-of-god"
+      if (areaSlug.length >= 3) {
+        for (const [slug, domain] of areaToDomain) {
+          if (slug.startsWith(areaSlug + "-") || areaSlug.startsWith(slug + "-")) {
+            return domain;
+          }
+        }
+      }
     }
 
     // Try folder path: areas/{slug}/...
     const pathMatch = note.path.match(/^areas\/([^/]+)\//);
     if (pathMatch) {
-      const domain = areaToDomain.get(pathMatch[1]);
+      const slug = pathMatch[1];
+      const domain = areaToDomain.get(slug);
       if (domain) return domain;
+      // Prefix match on folder too
+      for (const [s, d] of areaToDomain) {
+        if (s.startsWith(slug + "-") || slug.startsWith(s + "-")) {
+          return d;
+        }
+      }
     }
 
     return area || "Other";
@@ -268,11 +302,11 @@
       await ensureFolderExists(VAULT_PATHS.dailyNotes);
       await app.vault.create(
         dailyPath,
-        "```calendar-nav\n```\n\n- " + text + "\n",
+        "```calendar-nav\n```\n\n- [ ] " + text + "\n",
       );
     } else {
       const content = await app.vault.read(existing as TFile);
-      await app.vault.modify(existing as TFile, content + "\n- " + text);
+      await app.vault.modify(existing as TFile, content + "\n- [ ] " + text);
     }
   }
 
@@ -381,7 +415,7 @@
       <h3>Captures</h3>
       {#if captures.length > 0}
         <ul class="capture-list">
-          {#each captures as capture}
+          {#each captures as capture, i (i)}
             <li class="capture-item">{capture}</li>
           {/each}
         </ul>
@@ -454,64 +488,71 @@
 
 <style>
   .day-view {
-    padding: 16px 20px;
+    padding: 12px 0;
     font-family: var(--font-interface);
     color: var(--text-normal);
     max-width: 800px;
     overflow-y: auto;
   }
 
+  .day-view-header {
+    padding: 4px 16px 12px;
+  }
+
   .day-view-header h2 {
-    font-size: 1.4em;
-    font-weight: 600;
-    margin: 0 0 16px 0;
+    font-size: 1.25em;
+    font-weight: 700;
+    margin: 0;
     color: var(--text-normal);
+    line-height: 1.3;
   }
 
   .day-view-loading {
     color: var(--text-faint);
     text-align: center;
-    padding: 40px;
+    padding: 40px 16px;
+    font-size: 0.9em;
   }
 
+  /* Sections — flat layout with dividers */
   .day-view-section {
-    margin-bottom: 16px;
-    background: var(--background-secondary);
-    border-radius: 8px;
-    padding: 12px 16px;
-    border: 1px solid var(--background-modifier-border);
+    padding: 8px 0;
+    border-top: 1px solid var(--background-modifier-border);
   }
 
   .day-view-section h3 {
-    font-size: 0.8em;
+    font-size: 0.7em;
     font-weight: 600;
-    margin: 0 0 8px 0;
-    color: var(--text-muted);
+    margin: 0;
+    padding: 4px 16px 6px;
+    color: var(--text-faint);
     text-transform: uppercase;
-    letter-spacing: 0.05em;
+    letter-spacing: 0.06em;
   }
 
   .empty-state {
     color: var(--text-faint);
-    font-style: italic;
-    font-size: 0.9em;
-    margin: 4px 0;
+    font-size: 0.85em;
+    margin: 0;
+    padding: 6px 16px;
   }
 
   /* Task groups */
   .task-group {
-    margin-bottom: 4px;
+    margin-bottom: 2px;
   }
 
   .task-group-label {
-    font-size: 0.8em;
+    font-size: 0.7em;
     color: var(--text-muted);
-    margin: 8px 0 4px 0;
-    font-weight: 500;
+    margin: 0;
+    padding: 6px 16px 2px;
+    font-weight: 600;
+    letter-spacing: 0.03em;
   }
 
   .task-group-label:first-child {
-    margin-top: 0;
+    padding-top: 0;
   }
 
   .overdue-label {
@@ -520,7 +561,7 @@
 
   /* Domain groups (shared by active work + practices) */
   .domain-group {
-    margin-bottom: 8px;
+    margin-bottom: 4px;
   }
 
   .domain-group:last-child {
@@ -528,14 +569,16 @@
   }
 
   .domain-label {
-    font-size: 0.8em;
+    font-size: 0.7em;
     color: var(--text-accent);
-    margin: 8px 0 4px 0;
-    font-weight: 500;
+    margin: 0;
+    padding: 6px 16px 2px;
+    font-weight: 600;
+    letter-spacing: 0.03em;
   }
 
   .domain-group:first-child .domain-label {
-    margin-top: 0;
+    padding-top: 0;
   }
 
   /* Active work items */
@@ -543,26 +586,27 @@
     display: flex;
     align-items: center;
     gap: 8px;
-    padding: 4px 0;
+    padding: 5px 16px;
     cursor: pointer;
     background: none;
     border: none;
+    border-radius: 0;
     font: inherit;
     color: inherit;
     text-align: left;
     width: 100%;
   }
 
-  .work-item:hover .work-title {
-    color: var(--text-accent);
+  .work-item:hover {
+    background: var(--background-modifier-hover);
   }
 
   .work-type-badge {
     font-size: 0.7em;
     background: var(--background-modifier-border);
     color: var(--text-muted);
-    padding: 2px 6px;
-    border-radius: 4px;
+    padding: 1px 6px;
+    border-radius: 3px;
     white-space: nowrap;
     flex-shrink: 0;
   }
@@ -571,6 +615,7 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    font-size: 0.9em;
   }
 
   /* Practice items */
@@ -578,10 +623,12 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 4px 0;
+    padding: 5px 16px;
     background: none;
     border: none;
+    border-radius: 0;
     font: inherit;
+    font-size: 0.9em;
     color: inherit;
     text-align: left;
     width: 100%;
@@ -592,26 +639,27 @@
   }
 
   .practice-item.has-link:hover {
-    color: var(--text-accent);
+    background: var(--background-modifier-hover);
   }
 
   .link-arrow {
     color: var(--text-faint);
     flex-shrink: 0;
     margin-left: 8px;
+    font-size: 0.85em;
   }
 
   /* Captures */
   .capture-list {
     list-style: none;
     padding: 0;
-    margin: 0 0 4px 0;
+    margin: 0;
   }
 
   .capture-item {
-    padding: 4px 0;
+    padding: 5px 16px;
+    font-size: 0.9em;
     border-bottom: 1px solid var(--background-modifier-border);
-    font-size: 0.95em;
   }
 
   .capture-item:last-child {
@@ -621,6 +669,7 @@
   /* Insights */
   .insights-section :global(.insights-content) {
     line-height: 1.6;
-    font-size: 0.95em;
+    font-size: 0.9em;
+    padding: 0 16px;
   }
 </style>

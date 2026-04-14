@@ -96,30 +96,26 @@ export class VaultParser {
 
   /** Get all markdown files matching a filter. */
   async query(filter: NoteFilter = {}): Promise<ParsedNote[]> {
-    const files = this.app.vault.getMarkdownFiles();
-    const results: ParsedNote[] = [];
+    let files = this.app.vault.getMarkdownFiles();
 
-    for (const file of files) {
-      if (filter.folder && !file.path.startsWith(filter.folder + "/") && file.path !== filter.folder) {
-        continue;
-      }
-
-      const note = await this.getNote(file);
-
-      if (filter.type) {
-        const types = Array.isArray(filter.type) ? filter.type : [filter.type];
-        if (!note.type || !types.includes(note.type)) continue;
-      }
-
-      if (filter.tag) {
-        const tags = note.frontmatter.tags;
-        if (!Array.isArray(tags) || !tags.includes(filter.tag)) continue;
-      }
-
-      results.push(note);
+    if (filter.folder) {
+      const prefix = filter.folder + "/";
+      files = files.filter((f) => f.path.startsWith(prefix) || f.path === filter.folder);
     }
 
-    return results;
+    const notes = await Promise.all(files.map((f) => this.getNote(f)));
+
+    return notes.filter((note) => {
+      if (filter.type) {
+        const types = Array.isArray(filter.type) ? filter.type : [filter.type];
+        if (!note.type || !types.includes(note.type)) return false;
+      }
+      if (filter.tag) {
+        const tags = note.frontmatter.tags;
+        if (!Array.isArray(tags) || !tags.includes(filter.tag)) return false;
+      }
+      return true;
+    });
   }
 
   /** Convenience: get all notes of a given type. */

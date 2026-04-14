@@ -48,10 +48,10 @@ describe("parseYamlFrontmatter", () => {
     expect(result).toEqual({ tags: ["identity", "domains", "system"] });
   });
 
-  it("parses empty value followed by non-list as empty array", () => {
+  it("parses empty value followed by non-list as null", () => {
     const yaml = `waiting-on:\ntitle: Hello`;
     const result = parseYamlFrontmatter(yaml);
-    expect(result).toEqual({ "waiting-on": [], title: "Hello" });
+    expect(result).toEqual({ "waiting-on": null, title: "Hello" });
   });
 
   it("handles keys with hyphens", () => {

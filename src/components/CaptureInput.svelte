@@ -31,8 +31,8 @@
 <style>
   .capture-input {
     display: flex;
-    gap: 8px;
-    margin-top: 8px;
+    gap: 6px;
+    padding: 6px 16px 4px;
   }
 
   .capture-input input {
@@ -40,10 +40,10 @@
     background: var(--background-primary);
     border: 1px solid var(--background-modifier-border);
     border-radius: 4px;
-    padding: 6px 10px;
+    padding: 5px 10px;
     color: var(--text-normal);
     font-family: var(--font-interface);
-    font-size: 0.9em;
+    font-size: 0.85em;
   }
 
   .capture-input input::placeholder {
@@ -53,6 +53,7 @@
   .capture-input input:focus {
     outline: none;
     border-color: var(--interactive-accent);
+    box-shadow: 0 0 0 2px rgba(var(--interactive-accent-rgb, 99, 135, 210), 0.15);
   }
 
   .capture-input button {
@@ -60,19 +61,20 @@
     color: var(--text-on-accent);
     border: none;
     border-radius: 4px;
-    padding: 6px 14px;
+    padding: 5px 12px;
     cursor: pointer;
     font-family: var(--font-interface);
-    font-size: 0.85em;
+    font-size: 0.8em;
     font-weight: 600;
   }
 
   .capture-input button:hover {
+    background: var(--interactive-accent-hover, var(--interactive-accent));
     opacity: 0.9;
   }
 
   .capture-input button:disabled {
-    opacity: 0.4;
+    opacity: 0.3;
     cursor: not-allowed;
   }
 </style>

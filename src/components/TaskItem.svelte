@@ -30,7 +30,11 @@
     display: flex;
     align-items: center;
     gap: 8px;
-    padding: 4px 0;
+    padding: 4px 16px;
+  }
+
+  .task-item:hover {
+    background: var(--background-modifier-hover);
   }
 
   .task-checkbox {
@@ -43,6 +47,8 @@
     cursor: pointer;
     accent-color: var(--interactive-accent);
     margin: 0;
+    width: 15px;
+    height: 15px;
   }
 
   .task-content {
@@ -60,14 +66,11 @@
     min-width: 0;
   }
 
-  .task-content:hover .task-title {
-    color: var(--text-accent);
-  }
-
   .task-title {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    font-size: 0.9em;
   }
 
   .task-title.done {
@@ -76,7 +79,7 @@
   }
 
   .task-due {
-    font-size: 0.8em;
+    font-size: 0.75em;
     color: var(--text-muted);
     white-space: nowrap;
     flex-shrink: 0;
@@ -84,19 +87,22 @@
 
   .task-due.overdue {
     color: var(--text-error);
+    font-weight: 600;
   }
 
   .task-priority {
-    font-size: 0.75em;
-    padding: 1px 6px;
-    border-radius: 4px;
+    font-size: 0.7em;
+    padding: 1px 5px;
+    border-radius: 3px;
     background: var(--background-modifier-border);
     white-space: nowrap;
     flex-shrink: 0;
+    font-weight: 500;
   }
 
   .task-priority.high,
   .task-priority.urgent {
     color: var(--text-error);
+    background: rgba(var(--color-red-rgb, 255, 0, 0), 0.1);
   }
 </style>
