@@ -5,9 +5,12 @@ import {
   ICON_VAULT_OS,
   VIEW_TYPE_DAY,
   ICON_DAY,
+  VIEW_TYPE_KANBAN,
+  ICON_KANBAN,
 } from "./constants";
 import { VaultOSView } from "./vault-os-view";
 import { DayViewLeaf } from "./day-view";
+import { KanbanViewLeaf } from "./kanban-view";
 import { VaultParser } from "./vault-parser";
 import { FrontmatterWriter } from "./frontmatter-writer";
 import { NoteCreator } from "./note-creator";
@@ -34,9 +37,18 @@ export default class VaultOSPlugin extends Plugin {
       return new DayViewLeaf(leaf, this.vaultParser, this.frontmatterWriter);
     });
 
-    // Ribbon icon opens Day view
+    // Kanban view — task board
+    this.registerView(VIEW_TYPE_KANBAN, (leaf: WorkspaceLeaf) => {
+      return new KanbanViewLeaf(leaf, this.vaultParser, this.frontmatterWriter);
+    });
+
+    // Ribbon icons
     this.addRibbonIcon(ICON_DAY, "Open Day View", () => {
       void this.activateDayView();
+    });
+
+    this.addRibbonIcon(ICON_KANBAN, "Open Task Board", () => {
+      void this.activateView(VIEW_TYPE_KANBAN);
     });
 
     // Commands
@@ -44,6 +56,12 @@ export default class VaultOSPlugin extends Plugin {
       id: "open-day-view",
       name: "Open Day View",
       callback: () => void this.activateDayView(),
+    });
+
+    this.addCommand({
+      id: "open-kanban",
+      name: "Open Task Board",
+      callback: () => void this.activateView(VIEW_TYPE_KANBAN),
     });
 
     this.addCommand({
@@ -57,6 +75,7 @@ export default class VaultOSPlugin extends Plugin {
     this.vaultParser.destroy();
     setTimeout(() => {
       this.app.workspace.detachLeavesOfType(VIEW_TYPE_DAY);
+      this.app.workspace.detachLeavesOfType(VIEW_TYPE_KANBAN);
       this.app.workspace.detachLeavesOfType(VIEW_TYPE_VAULT_OS);
     }, 0);
   }

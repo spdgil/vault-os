@@ -42,6 +42,14 @@ export function isDueOn(dueDate: string, target: string): boolean {
   return dueDate === target;
 }
 
+/** Add (or subtract) days from a YYYY-MM-DD string. Returns YYYY-MM-DD. */
+export function addDays(dateStr: string, days: number): string {
+  const d = parseDate(dateStr);
+  if (!d) return dateStr;
+  d.setDate(d.getDate() + days);
+  return formatDate(d);
+}
+
 /** Convert a display name to a URL-safe slug: "Kingdom of God" → "kingdom-of-god". */
 export function slugify(text: string): string {
   return text

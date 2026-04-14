@@ -5,6 +5,7 @@ import {
   parseDate,
   isOverdue,
   isDueOn,
+  addDays,
   slugify,
 } from "./date-utils";
 
@@ -81,6 +82,29 @@ describe("isDueOn", () => {
 
   it("returns false when dates differ", () => {
     expect(isDueOn("2026-04-14", "2026-04-13")).toBe(false);
+  });
+});
+
+describe("addDays", () => {
+  it("adds days to a date", () => {
+    expect(addDays("2026-04-13", 1)).toBe("2026-04-14");
+    expect(addDays("2026-04-13", 7)).toBe("2026-04-20");
+  });
+
+  it("subtracts days from a date", () => {
+    expect(addDays("2026-04-13", -14)).toBe("2026-03-30");
+  });
+
+  it("crosses month boundaries", () => {
+    expect(addDays("2026-01-30", 3)).toBe("2026-02-02");
+  });
+
+  it("crosses year boundaries", () => {
+    expect(addDays("2026-12-30", 5)).toBe("2027-01-04");
+  });
+
+  it("returns input for invalid date string", () => {
+    expect(addDays("not-a-date", 1)).toBe("not-a-date");
   });
 });
 
